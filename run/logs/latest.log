@@ -1,0 +1,72 @@
+[06:25:16] [ServerMain/INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.10+7-Debian-1; Debian null) on Linux 6.18.5+kali-amd64 (amd64)
+[06:25:16] [ServerMain/INFO]: [bootstrap] Loading Paper 1.21-130-master@b1b5d4c (2024-08-10T10:02:42Z) for Minecraft 1.21
+[06:25:16] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
+[06:25:16] [Paper Plugin Remapper Thread - 2/INFO]: [PluginRemapper] Remapping plugin '/mnt/lao8/Projects/ServerPerfMonPlugin/build/libs/ServerPerfMonPlugin-0.1-beta.jar'...
+[06:25:17] [Paper Plugin Remapper Thread - 2/INFO]: [PluginRemapper] Done remapping plugin '/mnt/lao8/Projects/ServerPerfMonPlugin/build/libs/ServerPerfMonPlugin-0.1-beta.jar' in 504ms.
+[06:25:17] [ServerMain/INFO]: [PluginInitializerManager] Initialized 1 plugin
+[06:25:17] [ServerMain/INFO]: [PluginInitializerManager] Bukkit plugins (1):
+ - ServerPerfMon (0.1-beta)
+[06:25:19] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[06:25:20] [ServerMain/INFO]: Loaded 1290 recipes
+[06:25:20] [ServerMain/INFO]: Loaded 1399 advancements
+[06:25:20] [Server thread/INFO]: Starting minecraft server version 1.21
+[06:25:20] [Server thread/INFO]: Loading properties
+[06:25:20] [Server thread/INFO]: This server is running Paper version 1.21-130-master@b1b5d4c (2024-08-10T10:02:42Z) (Implementing API version 1.21-R0.1-SNAPSHOT)
+[06:25:20] [Server thread/INFO]: [spark] This server bundles the spark profiler. For more information please visit https://docs.papermc.io/paper/profiling
+[06:25:20] [Server thread/INFO]: Server Ping Player Sample Count: 12
+[06:25:20] [Server thread/INFO]: Using 4 threads for Netty based IO
+[06:25:21] [Server thread/INFO]: [ChunkTaskScheduler] Chunk system is using 1 I/O threads, 8 worker threads, and population gen parallelism of 8 threads
+[06:25:21] [Server thread/INFO]: Default game type: SURVIVAL
+[06:25:21] [Server thread/INFO]: Generating keypair
+[06:25:21] [Server thread/INFO]: Starting Minecraft server on *:25565
+[06:25:21] [Server thread/INFO]: Using epoll channel type
+[06:25:21] [Server thread/INFO]: Paper: Using libdeflate (Linux x86_64) compression from Velocity.
+[06:25:21] [Server thread/INFO]: Paper: Using OpenSSL 3.0.x (Linux x86_64) cipher from Velocity.
+[06:25:21] [Server thread/INFO]: [Server Performance Monitor] Loading server plugin ServerPerfMon v0.1-beta
+[06:25:21] [Server thread/INFO]: Server permissions file permissions.yml is empty, ignoring it
+[06:25:21] [Server thread/INFO]: Preparing level "world"
+[06:25:21] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[06:25:22] [Server thread/INFO]: Time elapsed: 519 ms
+[06:25:22] [Server thread/INFO]: Preparing start region for dimension minecraft:the_nether
+[06:25:22] [Server thread/INFO]: Time elapsed: 80 ms
+[06:25:22] [Server thread/INFO]: Preparing start region for dimension minecraft:the_end
+[06:25:22] [Server thread/INFO]: Time elapsed: 93 ms
+[06:25:22] [Server thread/INFO]: [Server Performance Monitor] Enabling ServerPerfMon v0.1-beta
+[06:25:22] [Server thread/INFO]: [Server Performance Monitor] §a--- ServerPerfMon 配置 ---
+[06:25:22] [Server thread/INFO]: [Server Performance Monitor] 监控服务器 URL: http://localhost:8080
+[06:25:22] [pool-14-thread-1/INFO]: [Server Performance Monitor] 正在尝试连接监控服务器...
+[06:25:22] [Server thread/INFO]: [Server Performance Monitor] ServerPerfMon 已启用！
+[06:25:22] [Server thread/INFO]: [spark] Starting background profiler...
+[06:25:22] [ForkJoinPool.commonPool-worker-1/INFO]: [Server Performance Monitor] §a成功连接到监控服务器！ID: 90b2948d-95cb-48f1-843a-e5640cdabe39
+[06:25:22] [Server thread/INFO]: Done preparing level "world" (1.346s)
+[06:25:22] [Server thread/INFO]: Running delayed init tasks
+[06:25:22] [Server thread/INFO]: Done (7.029s)! For help, type "help"
+[06:25:22] [Server thread/INFO]: Timings Reset
+[06:25:43] [Server thread/INFO]: Set the target tick rate to 1.0 per second
+[06:26:27] [Craft Scheduler Thread - 5 - ServerPerfMon/WARN]: [Server Performance Monitor] §c检测到低 TPS (14.34)。正在发送报告...
+[06:26:29] [Server thread/INFO]: [ServerPerfMon] 检测到低 TPS！14.34 | 报告: 成功
+[06:27:19] [Server thread/INFO]: Stopping the server
+[06:27:20] [Server thread/INFO]: Stopping server
+[06:27:20] [Server thread/INFO]: [Server Performance Monitor] Disabling ServerPerfMon v0.1-beta
+[06:27:20] [Server thread/INFO]: [Server Performance Monitor] ServerPerfMon 已禁用！
+[06:27:20] [Server thread/INFO]: Saving players
+[06:27:20] [Server thread/INFO]: Saving worlds
+[06:27:20] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[06:27:20] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world'
+[06:27:20] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world'
+[06:27:20] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world'
+[06:27:20] [Server thread/INFO]: [ChunkHolderManager] Saved 49 block chunks, 49 entity chunks, 0 poi chunks in world 'world' in 0.21s
+[06:27:20] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_nether]'/minecraft:the_nether
+[06:27:20] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world_nether'
+[06:27:20] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world_nether'
+[06:27:20] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world_nether'
+[06:27:21] [Server thread/INFO]: [ChunkHolderManager] Saved 49 block chunks, 49 entity chunks, 0 poi chunks in world 'world_nether' in 0.12s
+[06:27:21] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world_the_end]'/minecraft:the_end
+[06:27:21] [Server thread/INFO]: [ChunkHolderManager] Waiting 60s for chunk system to halt for world 'world_the_end'
+[06:27:21] [Server thread/INFO]: [ChunkHolderManager] Halted chunk system for world 'world_the_end'
+[06:27:21] [Server thread/INFO]: [ChunkHolderManager] Saving all chunkholders for world 'world_the_end'
+[06:27:21] [Server thread/INFO]: [ChunkHolderManager] Saved 49 block chunks, 49 entity chunks, 0 poi chunks in world 'world_the_end' in 0.09s
+[06:27:21] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[06:27:21] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[06:27:21] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[06:27:21] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved

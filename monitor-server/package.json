@@ -1,0 +1,14 @@
+{
+  "name": "minecraft-monitor-server",
+  "version": "1.0.0",
+  "description": "Simple monitoring server for Minecraft plugin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "uuid": "^13.0.0",
+    "ws": "^8.19.0"
+  }
+}

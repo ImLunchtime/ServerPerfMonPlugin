@@ -1,0 +1,12 @@
+name: ServerPerfMon
+version: '0.1-beta'
+main: top.tmtec.servperfmon.ServerPerfMon
+api-version: '1.21'
+prefix: Server Performance Monitor
+authors: [ ImLunchtime ]
+description: 监控服务器，当 TPS 过低时发送警报。
+commands:
+  spm:
+    description: ServerPerfMon 的主要命令
+    usage: /spm <reload|report|test>
+    permission: spm.admin

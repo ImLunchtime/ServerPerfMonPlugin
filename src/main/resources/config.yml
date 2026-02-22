@@ -1,0 +1,11 @@
+# Check interval in seconds
+check-interval: 5
+
+# TPS threshold to trigger report (below this value)
+tps-threshold: 15.0
+
+# Monitoring server URL
+monitor-server-url: "http://localhost:8080"
+
+# Server ID (auto-generated, do not change)
+server-id: ""

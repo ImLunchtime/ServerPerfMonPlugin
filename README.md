@@ -27,4 +27,4 @@
 - 地址：ws://监控服务器地址:监控服务器botServerPort/监控服务器botServerPath（例如，若你的监控服务器使用上面的默认配置：ws://127.0.0.1:8081/onebot）
 - Token: 监控服务器config.json中的botAccessToken。（例如，若你的监控服务器使用上面的默认配置：Replace_Me_!$@#，为了安全最好改掉，或者控制防火墙不暴露8081端口）
 
-**注意，NapCat Docker受Docker容器限制，不能通过127.0.0.1访问监控服务器，需要使用docker的网桥功能，填网桥IP（默认为172.17.0.1）。**
+**注意，NapCat Docker受Docker容器限制，不能通过127.0.0.1访问同一台机器上的监控服务器，需要使用docker的网桥功能，填网桥IP（默认为172.17.0.1）。**

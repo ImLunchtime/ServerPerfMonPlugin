@@ -9,7 +9,7 @@
 1. 克隆本仓库
 2. 进入`monitor-server`目录
 3. 运行`npm install`安装依赖
-4. 创建或编辑`monitor-server/config.json`文件:
+4. 创建或编辑`monitor-server/config.json`文件，记得删掉`//`后面的部分 避免错误！
 ```json
 {
     "httpPort": 8080, // 与MC端通信的HTTP端口

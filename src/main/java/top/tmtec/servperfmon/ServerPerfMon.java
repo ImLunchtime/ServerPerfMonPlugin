@@ -1,5 +1,6 @@
 package top.tmtec.servperfmon;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,6 +13,7 @@ import top.tmtec.servperfmon.network.NetworkClient;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 public final class ServerPerfMon extends JavaPlugin implements TabExecutor {
 
@@ -42,7 +44,7 @@ public final class ServerPerfMon extends JavaPlugin implements TabExecutor {
 
         // Start tasks
         this.networkClient.start();
-        this.performanceMonitor.start(); // This starts the async TPS check
+        this.performanceMonitor.start();
 
         // Register commands
         var command = getCommand("spm");
@@ -54,11 +56,18 @@ public final class ServerPerfMon extends JavaPlugin implements TabExecutor {
         getLogger().info("ServerPerfMon 已启用！");
     }
 
+    public PerformanceMonitor getPerformanceMonitor() {
+        return performanceMonitor;
+    }
+
     @Override
     public void onDisable() {
         // Plugin shutdown logic
         if (performanceMonitor != null) {
             performanceMonitor.stop();
+        }
+        if (networkClient != null) {
+            networkClient.stop();
         }
         getLogger().info("ServerPerfMon 已禁用！");
     }
@@ -68,17 +77,13 @@ public final class ServerPerfMon extends JavaPlugin implements TabExecutor {
         if (!command.getName().equalsIgnoreCase("spm")) return false;
 
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.RED + "用法: /spm <reload|report|test> （重载配置|手动发送报告|测试功能）");
+            sender.sendMessage(ChatColor.RED + "用法: /spm <reload|report|test|bind> （重载配置|手动发送报告|测试功能|绑定服务器）");
             return true;
         }
 
         if (args[0].equalsIgnoreCase("reload")) {
             reloadConfig();
-            // In a real scenario, we might need to restart the network client with new URL
-            // For now, just reload config values that are pulled dynamically
             sender.sendMessage(ChatColor.GREEN + "配置重载需重启服务器生效 (大部分设置)。"); 
-            // Or ideally, re-instantiate components, but that requires careful cleanup.
-            // Given the scope, let's keep it simple.
             return true;
         } else if (args[0].equalsIgnoreCase("report")) {
             sender.sendMessage(ChatColor.YELLOW + "正在强制发送报告...");
@@ -91,6 +96,38 @@ public final class ServerPerfMon extends JavaPlugin implements TabExecutor {
                 sender.sendMessage(ChatColor.RED + "当前未连接到监控服务器。正在尝试重连...");
             }
             return true;
+        } else if (args[0].equalsIgnoreCase("bind")) {
+            // Permission check: OP or spm.bind
+            if (!sender.isOp() && !sender.hasPermission("spm.bind")) {
+                sender.sendMessage(ChatColor.RED + "你没有权限执行此命令！");
+                return true;
+            }
+
+            if (!networkClient.isConnected()) {
+                sender.sendMessage(ChatColor.RED + "未连接到监控服务器，无法获取绑定码！请先检查连接状态 (/spm test)。");
+                return true;
+            }
+
+            sender.sendMessage(ChatColor.YELLOW + "正在获取绑定码...");
+            
+            // Generate 6-digit code
+            int code = 100000 + new Random().nextInt(900000);
+            String codeStr = String.valueOf(code);
+
+            networkClient.sendBindRequest(codeStr).thenAccept(success -> {
+                Bukkit.getScheduler().runTask(this, () -> {
+                    if (success) {
+                        sender.sendMessage(ChatColor.GREEN + "============== 绑定代码 ==============");
+                        sender.sendMessage(ChatColor.WHITE + "代码: " + ChatColor.AQUA + codeStr);
+                        sender.sendMessage(ChatColor.GRAY + "请在 QQ 群或私聊中发送: " + ChatColor.YELLOW + "@机器人 bind " + codeStr);
+                        sender.sendMessage(ChatColor.GRAY + "注意: 此代码仅在短时间内有效。");
+                        sender.sendMessage(ChatColor.GREEN + "======================================");
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "获取绑定码失败：监控服务器拒绝请求。");
+                    }
+                });
+            });
+            return true;
         }
 
         return false;
@@ -101,7 +138,7 @@ public final class ServerPerfMon extends JavaPlugin implements TabExecutor {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (command.getName().equalsIgnoreCase("spm")) {
             if (args.length == 1) {
-                return List.of("reload", "report", "test");
+                return List.of("reload", "report", "test", "bind");
             }
         }
         return Collections.emptyList();

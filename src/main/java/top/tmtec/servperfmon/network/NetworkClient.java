@@ -126,7 +126,11 @@ public class NetworkClient {
         // Include current status in keep-alive for real-time updates
         // This makes "status" command work even without a lag report
         JsonObject statusReport = new JsonObject();
-        statusReport.addProperty("tps", Bukkit.getTPS()[0]);
+        double currentTps = 20.0;
+        if (plugin.getPerformanceMonitor() != null) {
+            currentTps = plugin.getPerformanceMonitor().getTPS();
+        }
+        statusReport.addProperty("tps", currentTps);
         statusReport.addProperty("timestamp", System.currentTimeMillis());
         
         // Players (Simplified for keep-alive to save bandwidth, full list in report)
@@ -155,7 +159,13 @@ public class NetworkClient {
     private JsonObject initStatusReport() {
         JsonObject report = new JsonObject();
         report.addProperty("type", "status_report"); // New type
-        report.addProperty("tps", Bukkit.getTPS()[0]);
+        
+        double currentTps = 20.0;
+        if (plugin.getPerformanceMonitor() != null) {
+            currentTps = plugin.getPerformanceMonitor().getTPS();
+        }
+        report.addProperty("tps", currentTps);
+        
         report.addProperty("timestamp", System.currentTimeMillis());
         report.addProperty("server", plugin.getConfig().getString("server-name", "Minecraft Server"));
         
@@ -169,6 +179,24 @@ public class NetworkClient {
         report.add("players", players);
         
         return report;
+    }
+
+    public CompletableFuture<Boolean> sendBindRequest(String code) {
+        if (!isConnected) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        JsonObject json = new JsonObject();
+        json.addProperty("code", code);
+        json.addProperty("serverId", serverId);
+
+        return sendRequest("/bind-request", json).thenApply(response -> {
+            if (response != null && response.statusCode() == 200) {
+                return true;
+            } else {
+                return false;
+            }
+        });
     }
 
     public CompletableFuture<Boolean> sendReport(JsonObject json) {

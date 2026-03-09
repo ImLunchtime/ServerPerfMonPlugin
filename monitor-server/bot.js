@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const db = require('./db');
-const { registeredServers } = require('./registry');
+const { registeredServers, pendingBinds } = require('./registry');
 
 function loadConfig() {
     try {
@@ -33,7 +33,21 @@ function broadcastServerStatus(serverId, status, extraInfo = {}) {
     } else if (status === 'offline') {
         message = `【服务器离线】\n服务器已断开连接 (连接超时，服务器可能出错了或者已经崩溃)`;
     } else if (status === 'lag') {
-        message = `【低TPS警告】\n事件开始时间: ${extraInfo.startTime}\n当前TPS: ${extraInfo.tps}`;
+        const r = extraInfo.report;
+        const alertType = r.alertType;
+        
+        if (alertType === 'mspt_high') {
+             message = `⚠️ 【瞬时卡顿警告】\n检测到服务器出现瞬时卡顿。\n过去20Tick最长耗时: ${r.maxTickTime}ms\n当前TPS: ${r.tps}`;
+        } else if (alertType === 'mspt_critical') {
+             message = `🔴 【严重卡顿警告】\n检测到服务器出现严重线程阻塞！\n过去20Tick最长耗时: ${r.maxTickTime}ms\n当前TPS: ${r.tps}`;
+        } else if (alertType === 'tps_low') {
+             message = `📉 【低TPS警告】\n服务器负载持续过高 (TPS < 10)。\n当前TPS: ${r.tps}\n持续时间: >30秒`;
+        } else {
+             // Fallback
+             message = `【性能警告】\n${r.alertTitle || '未知性能问题'}\n当前TPS: ${r.tps}`;
+        }
+        
+        message += `\n事件时间: ${extraInfo.startTime}`;
     } else if (status === 'recovery') {
         message = `【TPS恢复正常】\n服务器TPS已回升至正常水平。\n当前TPS: ${extraInfo.tps}`;
     }
@@ -65,6 +79,7 @@ function broadcastServerStatus(serverId, status, extraInfo = {}) {
     }
 
     // 1. Broadcast to Groups
+    console.log('[BOT] Broadcasting Message:\n' + message);
     if (server.groups && globalSendGroupMsg) {
         server.groups.forEach(groupId => {
             globalSendGroupMsg(groupId, message);
@@ -181,17 +196,13 @@ function startBot() {
                 const trimmedMsg = rawMessage.trim();
                 
                 // --- Help Command ---
-                // Trigger: "help" in private, or "@Bot" (empty) in group
+                // Trigger: "help" in private, or "@Bot help" in group
                 let isHelp = false;
                 if (messageType === 'private' && trimmedMsg.toLowerCase() === 'help') {
                     isHelp = true;
                 } else if (messageType === 'group') {
-                    // Check for exact @Bot mention with no other text
-                    // [CQ:at,qq=SELF_ID] or [CQ:at,qq=SELF_ID] (trimmed)
-                    const hasAt = rawMessage.includes(`[CQ:at,qq=${message.self_id}]`);
-                    // If we don't know self_id, we check if it ENDS with the CQ code (meaning no text after)
-                    // But easier: check if it contains CQ:at and the rest is empty
-                    if (rawMessage.includes('[CQ:at,qq=') && rawMessage.replace(/\[CQ:at,qq=\d+\]/g, '').trim() === '') {
+                    const cleanMsg = rawMessage.replace(/\[CQ:at,qq=\d+\]/g, '').trim();
+                    if (cleanMsg.toLowerCase() === 'help') {
                         isHelp = true;
                     }
                 }
@@ -200,16 +211,17 @@ function startBot() {
                     const helpMsg = 
 `【Minecraft 监控机器人指令列表】
 1. 绑定服务器
-   - 群聊: @机器人 bind <UUID>
-   - 私聊: bind <UUID>
+   - 群聊: @机器人 bind <配对码>
+   - 私聊: bind <配对码>
+   (请在服务器输入 /spm bind 获取配对码)
 2. 解除绑定
    - 群聊: @机器人 unbind
    - 私聊: unbind
 3. 查询状态
-   - 发送: "s", "ss", "status", "状态"
+   - 发送: "s", "ss", "status", "状态", "@机器人"
    - 返回: 服务器在线状态、TPS、在线玩家列表
 4. 帮助
-   - 群聊: @机器人 (不带文字)
+   - 群聊: @机器人 help
    - 私聊: help`;
                     if (messageType === 'private') sendPrivateMsg(userId, helpMsg);
                     else sendGroupMsg(groupId, helpMsg);
@@ -218,8 +230,18 @@ function startBot() {
 
                 // --- Status Query Command ---
                 const statusKeywords = ['s', 'ss', 'status', '状态'];
-                // Check if message is exactly one of the keywords
-                if (statusKeywords.includes(trimmedMsg.toLowerCase())) {
+                
+                // Check if message is exactly one of the keywords OR just @Bot (empty)
+                let isStatusQuery = statusKeywords.includes(trimmedMsg.toLowerCase());
+                
+                if (!isStatusQuery && messageType === 'group') {
+                    // Check for exact @Bot mention with no other text
+                    if (rawMessage.includes('[CQ:at,qq=') && rawMessage.replace(/\[CQ:at,qq=\d+\]/g, '').trim() === '') {
+                        isStatusQuery = true;
+                    }
+                }
+
+                if (isStatusQuery) {
                     // Find bound server(s)
                     let targetServerIds = [];
                     
@@ -290,18 +312,33 @@ function startBot() {
                          return;
                     }
 
-                    // Command: bind <UUID>
+                    // Command: bind <Code>
                     if (trimmedMsg.startsWith('bind ')) {
-                        const serverId = trimmedMsg.split(' ')[1];
-                        if (!serverId) {
-                            sendPrivateMsg(userId, '用法：bind <ServerUUID>');
+                        const code = trimmedMsg.split(' ')[1];
+                        if (!code) {
+                            sendPrivateMsg(userId, '用法：bind <配对码>');
                             return;
                         }
                         
+                        // Check code
+                        const bindInfo = pendingBinds.get(code);
+                        if (!bindInfo) {
+                            sendPrivateMsg(userId, '绑定失败：配对码无效或已过期！');
+                            return;
+                        }
+                        
+                        if (Date.now() > bindInfo.expiresAt) {
+                            pendingBinds.delete(code);
+                            sendPrivateMsg(userId, '绑定失败：配对码已过期！');
+                            return;
+                        }
+                        
+                        const serverId = bindInfo.serverId;
                         const result = db.bindUser(serverId, userId);
                         if (result.success) {
+                            pendingBinds.delete(code); // Consume code
                             const server = db.getServer(serverId);
-                            sendPrivateMsg(userId, `[成功] 已成功绑定服务器，此后将在本聊天中发送服务器状态信息！服务器UUID：${server.id}`);
+                            sendPrivateMsg(userId, `[成功] 已成功绑定服务器 [${server.name}]！`);
                         } else {
                             sendPrivateMsg(userId, `[错误] 绑定失败：${result.reason}`);
                         }
@@ -333,18 +370,33 @@ function startBot() {
                         return; // Ignore
                     }
 
-                    // Command: bind <UUID>
+                    // Command: bind <Code>
                     if (cleanMsg.startsWith('bind ')) {
-                        const serverId = cleanMsg.split(' ')[1];
-                        if (!serverId) {
-                            sendGroupMsg(groupId, '[ERROR] Usage: @Bot bind <ServerUUID>');
+                        const code = cleanMsg.split(' ')[1];
+                        if (!code) {
+                            sendGroupMsg(groupId, '用法: @机器人 bind <配对码>');
                             return;
                         }
 
+                        // Check code
+                        const bindInfo = pendingBinds.get(code);
+                        if (!bindInfo) {
+                            sendGroupMsg(groupId, '绑定失败：配对码无效或已过期！');
+                            return;
+                        }
+                        
+                        if (Date.now() > bindInfo.expiresAt) {
+                            pendingBinds.delete(code);
+                            sendGroupMsg(groupId, '绑定失败：配对码已过期！');
+                            return;
+                        }
+
+                        const serverId = bindInfo.serverId;
                         const result = db.bindGroup(serverId, groupId);
                         if (result.success) {
+                            pendingBinds.delete(code);
                             const server = db.getServer(serverId);
-                            sendGroupMsg(groupId, `[成功] 已成功绑定服务器，此后将在本群中发送服务器状态信息！服务器UUID：${server.id}`);
+                            sendGroupMsg(groupId, `[成功] 已成功绑定服务器 [${server.name}]！`);
                         } else {
                             sendGroupMsg(groupId, `[错误] 绑定失败：${result.reason}`);
                         }

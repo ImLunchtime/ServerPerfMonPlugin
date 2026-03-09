@@ -2,7 +2,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const db = require('./db');
 const { broadcastServerStatus } = require('./bot');
-const { registeredServers } = require('./registry');
+const { registeredServers, pendingBinds } = require('./registry');
 
 const app = express();
 const port = 8080;
@@ -41,6 +41,35 @@ setInterval(() => {
         }
     });
 }, 1000);
+
+app.post('/bind-request', (req, res) => {
+    const { code, serverId } = req.body;
+    
+    if (!code || !serverId) {
+        return res.status(400).send('Missing code or serverId');
+    }
+
+    if (!registeredServers.has(serverId)) {
+        return res.status(404).send('Server not registered');
+    }
+    
+    // Store with 5 min expiry
+    const expiry = Date.now() + 5 * 60 * 1000;
+    pendingBinds.set(code, {
+        serverId: serverId,
+        expiresAt: expiry
+    });
+    
+    // Cleanup old binds
+    for (const [c, info] of pendingBinds.entries()) {
+        if (Date.now() > info.expiresAt) {
+            pendingBinds.delete(c);
+        }
+    }
+    
+    console.log(`[BIND] Received bind request: Code ${code} -> Server ${serverId}`);
+    res.status(200).send('OK');
+});
 
 app.post('/register', (req, res) => {
     const { serverName, version, existingId } = req.body;

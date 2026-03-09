@@ -8,5 +8,12 @@ description: 监控服务器，当 TPS 过低时发送警报。
 commands:
   spm:
     description: ServerPerfMon 的主要命令
-    usage: /spm <reload|report|test>
+    usage: /spm <reload|report|test|bind>
     permission: spm.admin
+permissions:
+  spm.admin:
+    description: Allows full access to ServerPerfMon commands
+    default: op
+  spm.bind:
+    description: Allows binding the server
+    default: op
